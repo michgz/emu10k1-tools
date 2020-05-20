@@ -1,0 +1,230 @@
+.\" emu-config
+.de Id
+.ds Dt \\$4
+..
+.Id $Id: emu-config.1,v 1.3 2002/01/19 06:07:58 dbertrand Exp $
+.ds = \-\^\-
+.de Sp
+.if t .sp .3
+.if n .sp
+..
+.TH emu-config 1 "25 June 2001" "emu10k1-tools" "Emu10k1 Users Manual"
+.SH NAME
+emu-config \- configuration tool for emu10k1 and Audigy based soundcards.
+.SH SYNOPSIS
+\fBemu-config\fP \fB-?Vadp\fP -s\fIBUS\fP -r\fIBUS\fP -s\fISOURCE\fP
+.SH DESCRIPTION
+.B emu-config
+is used to configure emu10k1 based soundcards. It can set shared
+analog/digital jacks (i.e. the yellow jack) on the '5.1' series of
+soundblaster Lives. And it can set the recording modes (more details
+below). 
+
+.SH OPTIONS
+.TP 3
+\fB\-a\fP or \fB\*=analog\fP
+Set output in analog mode (SBLive 5.1 and Audigy cards only).
+.TP
+\fB\-b\fIBUS\fP or \fB\*=bus=\fIBUS\fP        
+sets/prints the FX recording bus/es
+.TP
+\fB\-B\fI<on/off>\fP or \fB\*=boost=\fI<on/off>\fP   
+Set a 12dB boost on the analog front out either 'on' or 'off'. This
+option is only valid for SBLive cards.  
+.TP
+\fB\-d\fP or \fB\*=digital\fP
+Set output in digital mode (SBLive 5.1 and Audigy cards only).
+.TP
+\fB\-f\fIFREQ\fP or \fB\*=spdifrate=\fIFREQ\fP
+Set the sample rate of the output spdif on Audigy cards
+.TP
+\fB\-i\fP or \fB\*=ir\fP
+Enables Live Drive's and Audigy Drive's ir remote control and midi port.
+.TP
+\fB\-I\fP or \fB\*=info\fP
+Prints info on the card and driver.
+.TP
+\fB\-m\fIFXNUM\fP or \fB\*=inputfx=\fIFXNUM\fP
+By default, multichannel play back defaults to fx8-fx13, this option
+can be used to change the base fx offset (see multichannel.txt
+distributed with the driver for more info).
+.TP
+\fB\-M\fIDEVICE\fP or \fB\*=mixer=\fIDEVICE\fP
+Use a device other than /dev/mixer/
+.TP
+\fB\-p\fP or \fB\*=print\fP
+prints mixer settings
+.TP
+\fB\-r\fP or \fB\*=reset=\fIBUS\fP
+resets/prints the FX recording bus/es
+.TP
+\fB\-s\fP or \fB\*=source=\fISOURCE\fP
+sets/prints the recording source
+.TP
+\fB\-?\fP or \fB\*=help\fP
+Give this help list
+.TP
+\fB\*=usage
+Give a short usage message
+.TP
+\fB\-V\fP or --version
+	Print program version
+
+.SH SHARED OUTPUT
+.PP
+One of the minijacks found on 5.1 series of SBLive cards as well as
+Audigy Cards is a dual-mode analog/digital jack. It defaults to analog
+mode, to switch it into digital mode, execute the following command:
+.PP
+.B emu-config -d
+.PP
+To switch it back to analog mode, use -a instead.
+.PP
+Note, OEM SBLive cards present in Gateway brand computers also have a
+shared analog/digital jack but use a different and still unknown
+method for switching the card.
+.SH RECORDING MODES
+.PP
+There are three different recording modes on SBLive cards: ADC, MIC
+and FX. ADC is the normal setting.
+.TP
+.B ADC mode:
+
+This is the default setting. This mode can allow you to record at
+different sample rates, with 1 or 2 channels. When selected, this mode will
+cause the emu10k1 to copy the contents of what ever was sent to "ADC L/R"
+through a sample rate converter before sending it to your computer and
+eventually to the recording program.
+
+
+By setting up a route to "ADC L/R" using emu-dspmgr, you can record
+anything. (do not equate this with the analog AC97 mixer, it just so happens that we
+have it set to that by default)
+
+
+So if you wanted to record the cd digital input, you'd do:
+
+(first remove analog sources)
+
+.B emu-dspmgr -r"Analog L:ADC Rec L"
+
+.B emu-dspmgr -r"Analog R:ADC Rec R"
+
+(then add the cd spdif routes)
+
+.B emu-dspmgr -a"CD-Spdif L:ADC Rec L"
+
+.B emu-dspmgr -a"CD-Spdif R:ADC Rec R"
+
+
+This mode probably does sample rate convertions even if you record at
+48kHz (I should point out that internally, the emu10k1 does all it's work
+at 48kHz), so you can probably never get a perfect copy using this method.
+
+
+.TP
+.B Mic mode:
+
+This mode is intended as a "monitor" mode. Whatever is sent to "mic"
+using dsp code, is copied by the emu10k1 through a sample rate convert to
+8kHz (8 bit?) and off to your recording program.
+
+To select mic recording:
+
+.B emu-config -s"Mic"
+
+This mode is kinda useless since the ADC record mode can also do mono
+8bit, 8000Hz.
+
+.TP
+.B FX mode:
+
+
+This mode allows for 16bit multi-track non-sample rate converted recording
+
+
+Using FX recording, you can record any of the outputs listed in emu-dspmgr
+(though the driver currently limits you to the first 16 for some
+reason, need to verify and fix). Recording more than two channels is
+possible, but the driver's OSS interface still incorrectly reports 2
+channels of audio (the audio channels will be interleaved into 2 channels).
+
+
+To select FX mode:
+
+.B emu-config -s"FX"
+
+You can see which outputs (or "buses") are selected:
+
+.B emu-config -b
+gives:
+
+"FX bus[es] selected for recording: 0x0 0x1"
+
+This means that the first two outputs,  0x0 (Front L) and 0x1 (Front R)
+are selected for FX recording. If you were to record now, you'd record
+whatever was being sent to those outputs by the dsp code.
+
+To select different outputs (or "buses"), for example the digital outputs:
+
+.B emu-config -b2
+.B emu-config -b3
+
+now 
+.B emu-config -b
+gives us :
+
+"FX bus[es] selected for recording: 0x0 0x1 0x2 0x3"
+
+so we need to remove 0x0 and 0x1 (or else we'll end up recording 4
+channels of audio).
+
+.B emu-config -r0
+.B emu-config -r1
+
+now:
+"FX bus[es] selected for recording: 0x2 0x3"
+
+You can now record what ever is being sent to the digital out.
+
+A few things to note about FX mode:
+
+- The drivers still reports (according to the oss query utility) that it
+can record at different sampling rates. This is a bug, once in FX mode you
+should only record at 48K, 16bit.
+
+- As not all cards use all outputs, you can use the unused outputs on your
+card as dummy outputs, and record from them too. This allows you to record
+a different mix then what you hear. 
+
+
+.SH REPORTING BUGS
+Report bugs to <emu10k1-tools-devel@opensource.creative.com>
+
+.SH COPYING
+\(co 2001 Daniel Bertrand
+.br
+.PP
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+.PP
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+.PP
+Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be included in
+translations approved by the copyright holders instead of in
+the original English.
+.SH SEE ALSO
+emu_dspmgr(1), as10k1(1)
+.SH AUTHORS
+Daniel Bertrand <d.bertrand@ieee.org>
+
+
+
+
+

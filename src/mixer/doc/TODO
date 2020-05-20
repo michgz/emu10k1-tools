@@ -1,0 +1,14 @@
+Last Updated 9/11/2000
+-Share control gprs among identical patches (maybe share per group).
+-Support patches with multiple inputs/ouputs.
+-Allow control of the patch position in a line. For patches
+ with multiple inputs allow control of the position of each
+ input.
+-Give proper names to the inputs/outputs (taking into account also
+ the card model)
+-Do a nice GUI for all this.
+ List patches.
+ Unload patches.
+ Load patches.
+ List control gprs.
+ Change control gprs.

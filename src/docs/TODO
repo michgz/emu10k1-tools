@@ -1,0 +1,30 @@
+Last updated:	2001-10-07
+
+o	put support for midi in different modules (maybe)
+
+o	add a dsp ioctl to query and modify the parameters of the voice (mono or
+	stereo) associated with the /dev/dsp file descriptor.
+	Things to control:
+	- routing. FXRT_CHANNELx
+	- ...
+
+o	provide a way to accuratly synchronize a group of voices. This seems
+	essential for proper hardware voice mixing.
+
+o	Go back to using voice interrupts. The timer doesn't work on Alpha
+	and it makes it hard to handle dynamic pitch shifting.
+
+o	add support for secondary AC97 codecs present in some card models
+	(need info from Creative)
+
+o	add support for common analog/digital jack present in some Gateway OEM card models
+        (need info from Creative and/or Gateway)
+
+o	implement proper locking for the patch manager. Needs rewriting to load
+	all the patches in a single pass. 
+
+o	Consider getting rid of DSP_COPR_LOAD and just stick with the MIXER_PRIVATE ioctl's
+
+o	Add documentation for IR remote control
+
+o	Add documentation for mixer and patch management system

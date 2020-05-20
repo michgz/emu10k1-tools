@@ -1,0 +1,104 @@
+This is a description of the inner working of dsp.c.
+If you want to know how to use emu-dspmgr read the manual page:
+man ./emu-dspmgr.1
+--------------------------------------------------------------------------------
+There are three types of dsp patches:
+
+Input, Output, Routing.
+
+
+An input/output patch consists of:
+        m DSP code lines
+        1 output line number
+        1 input line number
+        1 input gpr register
+        1 output gpr register
+        p automatic gpr registers (the value may be discarded outside the patch) 
+        q static gpr registers (the value may not be overwritten by other patches)
+        TRAM lines (haven't look into this yet) 
+
+A routing patch consists of:
+        m DSP code lines
+        n input lines
+        o output lines
+        n input registers
+        o output registers
+        p automatic gpr registers (the value may be discarded outside the patch)        q static gpr registers (the value may not be overwritten by other patches)
+
+Patches are divided into three groups: input, output and routing. The patch
+that does the routing will be in the middle and connects each input
+to an arbitrary number of outputs. Input patches (Pi_) stay on the input
+lines (In_) and output patches (Po_) on the output lines (Out_).
+The order of the inputs patches on a given input line is of no importance.
+The same for the output patches.
+
+
+Input Side:                         
+In1---Pi1---Pi2---| Ri1
+
+In2---------------| Ri2
+
+In3---Pi3---------| Ri3
+
+In4---------------| Ri4
+
+In5---Pi5---------| Ri5
+
+Routing:
+
+Ri1|--> Ro1
+   |--> Ro3
+   |--> Ro6
+
+Ri2|--> Ro4
+
+Ri3|
+
+Ri4|--> Ro2
+   |--> Ro7
+
+
+Ouput side:
+
+Ro1 |---------------Out1
+
+Ro2 |---Po1---Po2---Out2
+
+Ro3 |---------Po3---Out3
+
+Ro4 |---------------Out4
+
+Ro5 |---------Po4---Out5
+                        
+
+A patch should never make direct reference to IN/OUT registers, it should
+only use gprs for this purpose. The compiler should build a list of the
+gprs used for output/input. The compiler should also build a list of
+automatic and static gprs used. If a gpr is not in one of this groups
+the patch is illegal.
+
+The program that ask the patch to be loaded must indicate the type of patch
+and the line it's going to be placed in. The output line number is ignored for
+input patches. For routing patches an array of line numbers maybe be indicated
+for the input and output lines. A routing patch can be attached to several inputlines and output lines. To each input line there can only be one routing patch
+attached. To each output line there can be an arbitrary number of patches attached.
+The patch loader will write some code to mix the various outputs.
+
+Each time a patch is loaded some dsp code maybe moved
+in order to insert the patch in the right place.
+
+Each time a patch is unloaded the remaining dsp code maybe moved
+in order to keep it in a continuous block.
+
+Also the entire code will be parsed and the input/output gprs
+references will be updated to maintain the correctness of the lines in
+the above picture.
+
+the dsp patch assembler should:
+        have an instruction to declare a gpr static or automatic.
+        (using a gpr without first declaring it should be illegal).
+        have an instruction to declare a gpr to be input/output.
+        optimize automatic gpr usage. 
+        construct a header suitable to pass this information to the
+        patch loader
+

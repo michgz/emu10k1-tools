@@ -1,0 +1,246 @@
+.\" emu-dspmgr man page
+.de Id
+.ds Dt \\$4
+..
+.Id $Id: emu-dspmgr.1,v 1.4 2002/01/19 06:07:58 dbertrand Exp $
+.ds = \-\^\-
+.de Sp
+.if t .sp .3
+.if n .sp
+..
+.TH EMU-DSPMGR 1 "25 June 2001"  "emu10k1-tools" "Emu10k1 Users Manual"
+.ta 3n
+.SH NAME
+emu-dspmgr \- dsp patch loader and manager for emu10k1 based soundcards
+.SH SYNOPSIS
+.B emu-dspmgr 
+.RI [ options ]
+.SH DESCRIPTION
+.B emu-dspmgr 
+is used to load/unload dsp patches to/from the emu10k1 processor
+present in soundcards such as the Creative Labs SBLive!.
+.B emu-dspmgr
+is also used to control the internal routing of signals
+(for example digital CD input to rear speakers). Some dsp patches 
+will have variable settings used to control their functioning
+(control gprs)
+which can also be modified using
+.B emu-dspmgr.
+.SH OPTIONS
+.TP 3
+\fB\-a\fP\fIroute\fP  or  \fB\*=add=\fP\fIroute\fP
+Adds a signal route.
+.I route
+is given in the form
+.I input:output
+(a list of valid inputs can be obtained with
+.BR -i
+and outputs with 
+.BR -o ).
+.TP
+\fB\-c\fP\fIcontrol\fP  or  \fB\*=control=\fP\fIcontrol\fP
+Selects
+.I control
+gpr to be modified (you also need to set the
+.BR -p
+option). When used with no arguments prints a list
+of the available control gprs. 
+
+When this option is used preceding a 
+.B -v 
+(create a route with volume) option, the route's volume control
+will use the name specified by the 
+.B -c 
+option.
+.TP
+\fB\-D\fP\fIfile\fP  or  \fB\*==dsp_device=\fP\fIfile\fP
+Use an alternate device than /dev/dsp.
+.TP
+
+.TP
+\fB\-d\fP  or  \fB\*=debug\fP
+Enables debug output. A detailed list of loaded dsp patches will
+be printed. 
+.TP
+\fB\-f\fP\fIfile\fP  or  \fB\*=filestart=\fP\fIfile\fP
+Loads a '.bin' dsp patch from
+.I file.
+It must be preceeded by
+.B -l
+to indicate the line where to attach the dsp patch. 
+
+The patch will have a name specified inside the .bin file, you can rename it to
+something else by using the
+.B -p
+option.
+this will add the patch before any other already loaded patches in the
+signal chain.
+
+.TP
+\fB\-F\fP\fIfile\fP  or  \fB\*=fileend=\fP\fIfile\fP
+Same as 
+.B -f
+but adds the file to the end of a signal chain
+
+
+.TP
+\fB\-i\fP  or  \fB\*=inputs\fP
+List the available inputs.
+
+.TP
+\fB\-l\fP\fIline\fP  or  \fB\*=line=\fP\fIline\fP
+Selects the
+.I line
+where to attach the dsp patch.
+.I line
+is one of the valid inputs or outputs.
+.TP
+\fB\-m\fP\fIelement\fP  or  \fB\*==mixer=\fP\fIelement\fP
+Map a control GPR to an OSS mixer element. If no element is specified,
+a full listing is provided. The option must be preceeded with a patch (-p) and
+control GPR (-c)  
+.TP
+\fB\-M\fP\fIfile\fP  or  \fB\*==mixer_device=\fP\fIfile\fP
+Use an alternate mixer than /dev/mixer.
+.TP
+\fB\-o\fP  or  \fB\*=outputs\fP
+List the available output.
+.TP
+\fB\-p\fP\fIpatch\fP  or  \fB\*=patch=\fP\fIpatch\fP
+
+When used with the
+.B -s
+(set control GPR), or
+.B -m
+(map GPR to OSS mixer control)
+options, this 
+selects the dsp
+.I patch 
+to be modified.
+
+When used with the
+.B -f
+(load patch) option, renames the loaded patch to
+.Ipatch
+.TP
+\fB\-r\fP\fIroute\fP  or  \fB\*=remove=\fP\fIroute\fP
+Removes a signal route.
+.I route
+is given in the form
+.I input:output
+(a list of valid inputs can be obtained with
+.BR -i
+and outputs with
+.BR -o ).
+This option
+when used with no arguments prints a list of current
+signal routes.
+
+(note, if the route is the only route tied to
+an input/output line and that line has a patch attached, remove the
+patch first, see -z for a quick way to remove everything).
+.TP
+\fB\-s\fP\fIvalue\fP  or  \fB\*=set=\fP\fIvalue\fP
+Sets the
+.I value
+of a control gpr. This option must be preceeded by
+the
+.B -c
+and
+.B -p
+options
+(with a valid patch and control gpr names)
+to select the control gpr to be modified.
+.I value
+is a signed 32 bit quantity in hexadecimal. 
+.TP
+\fB\-u\fP\fIprog\fP  or  \fB\*=unload=\fP\fIprog\fP
+Unloads a dsp patch. This option when used without arguments
+lists all the loaded patches.
+.TP
+\fB\-v\fP\fIroute\fP  or  \fB\*=volume=\fP\fIroute\fP
+Adds a signal route with volume control.
+.I route
+is given in the form
+.I input:output
+(a list of valid inputs can be obtained with
+.BR -i
+and outputs with
+.BR -o ).
+
+The option also acts as the 
+.B -p
+and 
+.B -c
+options at the same time, so, for example, one can create a route with
+volume and map it to an OSS mixer control in a single command.
+.TP
+\fB\-z\fP or  \fB\*=clear\fP
+removes all routes and unloads all dsp microcode programs
+
+.SH EXAMPLES
+.PP
+Adding a signal route connecting "Pcm L" to "Rear L":
+.PP
+.B emu-dspmgr -a"Pcm L:Rear L"
+.PP
+Loading the patch effect.bin and placing it in the "Pcm L" line:
+.PP
+.B emu-dspmgr -l"Pcm L" -feffect.bin
+.PP
+Create a route with volume control a make it controlable by the OSS'
+pcm mixer control:
+.PP
+.B emu-dspmgr -v"Pcm L:Rear L" -mpcm_l
+.PP
+Changing a control gpr value of the "Routing" patch:
+.PP
+.B emu-dspmgr -p"Routing" -c"Vol Pcm L:Rear L" -sffffff
+.PP
+Load the tone control patch, rename them as "bass-treble"
+and map the bass and treble control gprs to mixer elements in one
+command:
+.PP
+.B emu-dspmgr -p"bass-treble" -l"Pcm L" -ftone.bin -cbass -mbass -ctreble -mtreble
+.PP
+For an example of a working script, see emu-script distributed with
+the driver source in utils/mixer.
+
+.SH BUGS
+.PP
+Not really a bug, but: location matters. Information to be used by 
+\'actions\' (-a, -f, m, -r, -s, and -u) should appear before these
+actions on the command line, follow order in the examples above. 
+.PP
+"Help, route XYZ is unremovable!" --> make sure no patches are tied
+to either the input or output of the route \fBand\fP this route is the
+only route attached to that input or output.
+.PP
+"Help, the digital out on my SBLive 5.1 doesn't work" --> use
+"emu-config -d" to toggle it into digital mode (not a bug).
+
+.SH SEE ALSO
+as10k1(1), emu-config(1), emu-script (see the script, there's no man page)
+
+.SH COPYING
+Copyright
+.if t \(co
+2000, 2001 Rui Sousa, Daniel Bertrand
+.br
+.PP
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+.PP
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+.PP
+Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be included in
+translations approved by the copyright holders instead of in
+the original English.
+.SH AUTHORS
+Rui Sousa, Daniel Bertrand

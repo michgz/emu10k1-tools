@@ -1,0 +1,123 @@
+Some notes about analog multichannel playback
+=============================================
+
+Analog multichannel playback was implemented by
+Eduard Hasenleithner <eduard@hasenleithner.at>
+Created: 2001-07-05
+
+If you have any questions regarding this topic, don't
+hesitate to mail me :)
+
+Usage
+=====
+Multichannel playback is now possible with the emu10k1
+driver. An audio application requests the number of channels
+with the SNDCTL_DSP_CHANNELS ioctl, and the new code is
+activated.
+
+The voices start with fx8, and increment for each additional
+voice. For example, five channel output uses fx8 .. fx12 as
+dsp input. Since no routes are present for this input, nothing
+can be heard! In order to route the channels to the speakers
+following commands must be issued:
+
+emu-dspmgr -a"fx8:Front L"
+emu-dspmgr -a"fx9:Front R"
+emu-dspmgr -a"fx10:Rear L"
+emu-dspmgr -a"fx11:Rear R"
+emu-dspmgr -a"fx12:Analog Center"
+emu-dspmgr -a"fx13:Analog LFE"
+
+The reason for not using the voices from fx0 on is just
+convenience. One must not delete all routes before setting
+up the new routes for multichannel output. It is possible
+to use fx0 as base. 
+
+To set a different fx number as base invoke
+
+emu-config -m 0
+
+for setting fx0 as base. Every other fx can also be set.
+Attention: fx15 is unusable. So for 6ch output, this parameter
+should be no higher than 9! Using fx15 would need extra code
+in the driver which is not yet included.
+
+To level the output of ch5 and ch6 (SbLive5.1, Center and LFE)
+a new OSS mixer control has been included. The control name is
+SOUND_MIXER_IMIX and has the name "Mix" in aumix. Although this
+is a stereo control it is intended for setting the Center and
+LFE individually.
+
+How does it work?
+=================
+
+The emu10k1 chip has the possibility to play 64 voices. This
+is more than sufficient to replay 5.1 surround. But the chip
+can not replay this the same way as stereo.
+
+For stereo streams, two voices point to the same input buffer.
+A flag in one of the emu10k1 register signals, that the voice
+should only read every second sample. Using an offset of one
+sample, two voices can be combined to replay stereo.
+
+But this method does not work for replaying more than two
+channels. Doing this, required some kind of software emulation.
+What I did was to allocate the needed number of mono voices
+along with separate voice buffers. In the write function,
+the input stream gets split up into the individual voice
+buffers.
+
+Are there problems?
+===================
+
+Although this works very well it has several drawbacks. These
+drawbacks do not interfere with the usual DVD playback, but
+should be considered when doing something else.
+
+So, remember following facts:
+*) fragment_size
+	The fragment size ioctl does not set the fragment size
+	of the user-space buffer, but the fragment size of the
+	individual voice buffers. Therefore the fragment size reported
+	to the user program is num_channels * requested_fragment_size. 
+*) memory mapped access
+	memory mapped access is simply not possible. As this
+	access needs support from hardware, there is no way
+	to do it.
+
+Aside from that, all other things should work. But it is
+possible that I did not modify all IOCTLs to care for the
+multichannel extension I made. If you need one IOCTL, and
+it don't works, email me.
+
+Some internals
+==============
+
+This section is not intended for end users, but only for some
+person, who wants to modify the code.
+
+The former structure of the source code had almost no preparations
+for implementing multiple channels. Therefore, following two
+structures had to be modified:
+
+*) woinst
+	woinst is now responsible for more than one voice. The
+	voice member is now an array. All bytes values in this
+	structure refer to a single voice. To report them to
+	user space they must be multipled by the number of voices.
+	The number of _separately_ allocated voices is contained
+	in num_voices. So, for stereo, num_voices is still 1!
+	
+*) waveout_buffer
+	waveout_buffer contains all values with the metrics
+	for the first voice. All other voices are dependend on
+	this first voice and are assumed to have the same values.
+	Instead of the three variables emupageindex, addr and
+	dma_handle, a new structure, waveout_mem is present
+	in waveout_buffer. This new structure is inserted as an
+	array of waveout_mem. With this modification, it is
+	possible to allocate more than one buffer.
+
+So, every function which relys on the values of waveout_buffer must
+take the number of voices into account.
+

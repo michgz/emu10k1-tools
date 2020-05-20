@@ -1,0 +1,23 @@
+dbgemu -- A debugging/hacking tool for the emu10k1.
+
+By: Daniel Bertrand <d.bertrand@ieee.org>
+
+Last update: June 29, 2001
+--
+
+Installing:
+
+compile dbgemu using "make" and "make install" to install
+
+enjoy.
+
+Type "dbgemu -h" for help on using it.
+
+
+To remove some safety features from the driver, say 'y'  to 
+DBGEMU in Makefile.config
+
+
+
+
+

@@ -1,0 +1,143 @@
+EMU10K1 DSP Documentation
+-------------------------
+
+Most of the following information was obtained by trial-and-error.
+
+Use it at your own risk!
+
+Please send any comments, corrections or additions to
+<dkoukola@atrey.karlin.mff.cuni.cz>.
+
+
+Instruction Format
+------------------
+
+        31    23       20 19     10 9       0
+   0   |                 |    X    |    Y    |
+   1   |     |  opcode   |    R    |    A    |
+     
+
+Opcodes
+-------
+
+   0x0 (MAC) : R = A + (X * Y >> 31)   ; saturation
+   0x1 (MAC) : R = A + (-X * Y >> 31)  ; saturation
+   0x2 (MAC) : R = A + (X * Y >> 31)   ; wraparound
+   0x3 (MAC) : R = A + (-X * Y >> 31)  ; wraparound
+   0x4 (MACINT) : R = A + X * Y  ; saturation
+   0x5 (MACINT) : R = A + X * Y  ; wraparound (31-bit)
+   0x6 (ACC3) : R = A + X + Y  ; saturation
+   0x7 (MACMV) : R = A, accum += X * Y >> 31 (accum == 0x56)
+   0x8 (ANDXOR) : R = (A & X) ^ Y
+   0x9 (TSTNEG) : R = (A >= Y) ? X : ~X
+   0xa (LIMIT) : R = (A >= Y) ? X : Y
+   0xb (LIMIT): R = (A < Y) ? X : Y
+   0xc (LOG) : ...
+   0xd (EXP) : ...
+   0xe (INTERP) : R = A + (X * (Y - A) >> 31)  ; saturation
+   0xf (SKIP) : R, CCR, CC_TEST, COUNT 
+
+   The accum register can only be used as the A operand.
+   The result of X * Y, on the MACMV instruction, is accumulated in to the
+   67 bit ACCUM without the shifting (>> 31). 
+   When you go to fetch the accum on the next instruction, if you use a MAC, 
+   ACC3 or any other instruction it will be shifted (i.e. you'll use bits 31 
+   through 62 of the ACCUM). An exception, however, is if you use a MACINT,
+   in which case it won't be shifted (you'll use bits 0-31).
+
+   Apparently if an instruction tries to access more than one of
+   the input registers (0x00 to 0x20) the result is undefined.
+
+Operands
+--------
+
+   0x00n : FX send bus
+   0x010 : in0 l (digital output of the AC '97 codec
+   0x011 : in0 r   the source is the recording source)
+   0x012 : in1 l (S/PDIF CD digital in on card)
+   0x013 : in1 r
+   0x014 : in2 l (mic?)
+   0x015 : in2 r
+   0x016 : in3 l (LiveDrive -- TOSLink Optical In)
+   0x017 : in3 r
+   0x018 : in4 l (LiveDrive -- Line/Mic In 1)
+   0x019 : in4 r
+   0x01a : in5 l (LiveDrive -- Coaxial S/PDIF Input)
+   0x01b : in5 r
+   0x01c : in6 l (LiveDrive -- Line/Mic In 2)
+   0x01d : in6 r
+   0x01e : in7 l
+   0x01f : in7 r
+
+   0x020 : out0 l (AC '97 codec)
+   0x021 : out0 r
+   0x022 : out1 l (Digital Front / LiveDriveI (?) -- TOSLink Optical Out)
+   0x023 : out1 r
+   0x024 : out2 l Digital Center (5.1 card)
+   0x025 : out2 r Digital LFE (5.1 card)
+   0x026 : out3 l (LiveDrive -- headphone out)
+   0x027 : out3 r
+   0x028 : out4 l (rear channel Digital and Analog)
+   0x029 : out4 r
+   0x02a : out5 l (ADC recording buffer)
+   0x02b : out5 r
+   0x02c : out6 l (microphone recording buffer)
+   0x02d : out6 r 
+   0x02e : out7 l
+   0x02f : out7 r
+   0x030 : out8 l
+   0x031 : out8 r Analog Center (5.1 cards only)
+   0x032 : out9 l Analog LFE  (5.1 cards only)
+
+   0x040 : 00000000
+   0x041 : 00000001
+   0x042 : 00000002
+   0x043 : 00000003
+   0x044 : 00000004
+   0x045 : 00000008
+   0x046 : 00000010
+   0x047 : 00000020
+   0x048 : 00000100
+   0x049 : 00010000
+   0x04a : 00080000
+   0x04b : 10000000
+   0x04c : 20000000
+   0x04d : 40000000
+   0x04e : 80000000
+   0x04f : 7fffffff
+   0x050 : ffffffff
+   0x051 : fffffffe
+   0x052 : c0000000
+   0x053 : 4f1bbcdc
+   0x054 : 5a7ef9db
+   0x055 : 00100000 (?)
+
+   0x056 : ACCUM, accumulator
+   0x057 : CCR, condition code register
+   0x058 : uniformly distributed (-0.5 to 0.5) white noise source
+   0x059 : noise source, 4097 sample delayed copy of register 0x058
+   0x05A : IRQREG, set the MSB to generate a FX interrupt
+   0x05B : DBAC, used by TRAM engine, decremented at each sample
+
+   0x1nn : general purpose registers
+   0x2nn : tank memory data registers
+   0x3nn : tank memory address registers (0x380-0x39f external TRAM)
+
+
+   Input/Output details:
+
+   out0, AC97 PCM channel (Front Analog)
+
+   out4, rear channel:
+	stereo analog and digital output on the back of the card.
+
+   out5, ADC recording buffer:
+	 what your record when the AC97 recording buffer is selected.
+	(16 bit only, stereo/mono, variable samplingrate)
+
+   out6, microphone recording buffer:
+	what your record when the MIC recording buffer is selected.
+	(16 bit only, mono only, 8000Hz only)
+
+  References:
+	see manuals.txt

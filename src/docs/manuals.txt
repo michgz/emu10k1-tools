@@ -1,0 +1,57 @@
+ftp://opensource.creative.com/pub/doc
+	Files:
+	LM4545.pdf	AC97 Codec
+
+	m2049.pdf	The EMU10K1 Digital Audio Processor
+
+	hog63.ps	FX8010 - A DSP Chip Architecture for Audio Effects
+
+
+WIPO Patents 
+------------
+
+freely viewable at http://ep.espacenet.com
+
+	Patent numbers:
+	WO 9901813 (A1)	Audio Effects Processor with multiple asynchronous		(Jan. 14, 1999)
+			streams (same as US patent 5,928,342)
+
+  	WO 9901814 (A1)	Processor with Instruction Set for Audio Effects		(Jan. 14, 1999)
+			(same as patent 5,930,158)
+
+  	WO 9901953 (A1)	Audio Effects Processor having Decoupled Instruction
+			Execution and Audio Data Sequencing				(Jan. 14, 1999)
+
+
+
+US Patents (http://www.uspto.gov/)
+----------
+
+	US 5925841      Digital Sampling Instrument employing cache memory              (Jul. 20, 1999)	
+
+  	US 5928342	Audio Effects Processor integrated on a single chip		(Jul. 27, 1999)
+			with a multiport memory onto which multiple asynchronous
+			digital sound samples can be concurrently loaded
+
+  	US 5930158	Processor with Instruction Set for Audio Effects		(Jul. 27, 1999)
+
+	US 6032235	Memory initialization circuit (Tram)				(Feb. 29, 2000)
+
+	US 6138207	Interpolation looping of audio samples in cache connected to	(Oct. 24, 2000)
+			system bus with prioritization and modification of bus transfers
+			in accordance with loop ends and minimum block sizes 
+
+	US 6151670	Method for conserving memory storage using a			(Nov. 21, 2000)
+                        pool of  short term memory registers 
+
+	US 6195715	Interrupt control for multiple programs communicating with	(Feb. 27, 2001)
+			a common interrupt by  associating programs to GP registers,
+			defining interrupt register, polling GP registers, and invoking
+			callback routine associated with defined interrupt register 	
+
+
+
+Another list of creative/emu patents is maintained here:
+http://ct4830.tripod.com/bekomex/documentation/index.htm
+
+

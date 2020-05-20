@@ -1,0 +1,138 @@
+SoundBlaster Live under Linux Frequently Asked Questions
+
+This document is intended to provide answers to the questions most often
+received by the SoundBlaster Live support team (which can be reached at
+linux_bug@soundblaster.com ).
+
+For the moment, this FAQ addresses both the Open Source driver and the
+not-yet-released binary driver. Eventually there will be separate FAQ
+documents for each. To clarify -- we have currently released an Open Source
+driver which contains no binary-only components whatsoever. Later on (see
+below), there will be a binary driver released by Creative which is being
+developed from a separate code base. There will not be any merging of the
+two efforts.
+
+This FAQ generally assumes that you are using the current driver sources. If
+you are having problems and are not running the latest sources, then
+upgrading is often the answer to your problems.
+
+The latest version of this document is available at the Creative Open Source
+Web site .
+
+Last modified Tuesday, November 16, 1999
+  ------------------------------------------------------------------------
+
+Index of Questions:
+
+Section A - Driver Installation
+
+   * Q.A1- How do I install for a kernel other than one the driver was
+     compiled for?
+   * Q.A2- Which distributions are supported by the current driver?
+   * Q.A3- I get unresolved symbol errors when loading the driver -- what's
+     wrong?
+   * Q.A4- I get a "device or resource busy" error when loading the driver
+     -- what's wrong?
+
+Section B - Source Code
+
+   * Q.B1- Where is the source for the Linux driver?
+   * Q.B2- I want to develop Live drivers -- can I get a copy of the Emu10k1
+     specifications?
+   * Q.B3- Are ALSA drivers being developed?
+   * Q.B4- How do I submit patches?
+
+Section C - Driver Features
+
+   * Q.C1- What features are currently supported?
+   * Q.C2- What features will be supported?
+   * Q.C4- When will the binary driver be released?
+
+  ------------------------------------------------------------------------
+
+Driver Installation
+
+Q.A1- How do I install for a kernel other than one the driver was compiled
+for?
+
+This was a major issue which is gone now that the driver is Open Source.
+Download the latest driver from the Creative Open Source website, decompress
+it, and install using the included instructions.
+
+Q.A2- Which distributions are supported by the current driver?
+
+The current driver supports any Intel architecture Linux distribution. You
+may need to compile the driver yourself, however (see answer to Q.A1 above).
+
+Q.A3- I get unresolved symbol errors when loading the driver -- what's
+wrong?
+
+1: Make sure that the soundcore module is loaded before you load the driver.
+If soundcore isn't available, then your kernel probably wasn't compiled with
+sound support enabled. For instructions on re-compiling your kernel, please
+reference the Kernel-HOWTO and/or the Sound-HOWTO documents available at the
+Linux documentation project web site in their support section.
+
+2: If your kernel was compiled with module versioning enabled, you will need
+to make a change in the Makefile which comes with the Emu10k1 driver
+sources. Find the line which reads "MODVERSIONS = n" and change it to read
+"MODVERSIONS = y". Then "make clean ; make" to rebuild everything.
+
+Q.A4- I get a "device or resource busy" error when loading the driver --
+what's wrong?
+
+This is a know bug with ABIT B6 + HPT366 controller motherboards. You must
+not use the `pci=reverse' kernel option. Usually this option is set in
+/etc/lilo.conf. For more info, see Bugzilla bug #21.
+
+  ------------------------------------------------------------------------
+
+Source Code
+
+Q.B1- Where is the source for the Linux driver?
+
+There is an open source driver available at the main Creative Open Source
+page or via anonymous CVS.
+
+Q.B2- I want to develop Live drivers -- can I get a copy of the Emu10K1
+specifications?
+
+It may be possible for us to arrange to get you specifications. You'll need
+to sign a nondisclosure agreement. Visit the Creative developer's home page
+for more info on how to become a registered developer.
+
+Q.B3- Are ALSA drivers being developed?
+
+Yes. The ALSA project is working on Emu10k1 drivers based on the existing
+open source codebase. No formal release date has been set.
+
+Q.B4- How do I submit patches?
+
+Either attach your patches to Bugzilla entries or submit them to the
+emu10k1-devel mailing list .
+  ------------------------------------------------------------------------
+
+Driver Features
+
+Q.C1- What features are currently supported?
+
+   * Stereo wave audio input and output
+   * Rear speakers are stereo-mirrored
+   * Digital SPDIF out
+   * Mixer support
+   * Joystick support
+   * External MIDI device support
+
+Q.C2- What features will be supported?
+
+For the Open Source drivers, most normal features that are normally
+supported under Linux are already supported. Creative is working with
+third-party developers on adding more advanced audio features to Linux such
+as EAX.
+
+Q.C4- When will the binary driver be released?
+
+We're working towards a release in the first quarter of 2000.
+  ------------------------------------------------------------------------
+
+Send comments regarding this page to Linux Support at Creative

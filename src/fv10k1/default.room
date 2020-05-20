@@ -1,0 +1,28 @@
+; default room definition file
+
+xsize 8            ; room dimensions (all units are meters)
+ysize 11.65
+zsize 5            ; use zsize=0 for a 2D model
+
+xsrc 2             ; position of left source - right is symmetric in X
+ysrc 2
+zsrc 2
+
+yl 8               ; position of listener - xl is always xsize/2
+zl 2 
+
+  ; absorption coefficients (aka noise reduction coefficients)
+  ; some typical values: 
+  ;    wood .085, concrete .29, concrete w/heavy carpet .29
+aside  .085        ; side walls
+afront .085        ; front wall (behind source)
+arear  .085        ; rear wall (behind listener)
+afloor .35         ; floor
+aceil  .29         ; ceiling
+
+nr 30              ; max number of reflections to consider
+mindamp 1e-6       ; minimum dampening (quieter reflection paths discarded)
+maxdly  80         ; max delay, ms. Above 85 is all useless for fv10k1...
+
+maxpaths 20        ; max number of paths to consider
+                   

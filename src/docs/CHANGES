@@ -1,0 +1,47 @@
+
+LATEST CHANGES
+==============
+
+emu-tools-0.9.4 - January 18, 2002
+---------------
+
+- Added new option to emu-dspmgr and emu-config to use alternate /dev/ entries.
+- Added two new surround sound decoders
+- Added new options to emu-config:
+ -I  prints out info on the card and driver
+ -B Add/Remove 12dB gain from Analog Front speakers
+ -f set output spdif frequency rate on Audigy cards
+- Added Audigy support for -d and -a options
+
+-Improvements to emu-script, a few new options added.
+(see the default emu-config file in the scripts/ directory)
+-added command line argument overiding for emu-script (details in the script itself)
+
+
+
+emu-tools-0.9.3  - Oct 12, 2001 (kernel 2.4.11)
+---------------
+
+-Added fv10k1, a reverb engine for the emu10k1
+-The driver in 2.4.11 now needs dsp for the PCM volume control
+
+
+emu-tools-0.9.2 - August 26, 2001
+---------------
+
+-Improved tone control, 
+  o  kernels 2.4.8-2.4.10 use 'tone-old.bin',
+  o  kernel's 2.4.11 and higher use tone.asm
+
+
+emu-tools-0.9.1 - August 11, 2001 (for kernels 2.4.8)
+---------------
+  o  Bugs fixes
+
+
+emu-tools-0.9 - August 10, 2001
+-------------
+  o  initial release 
+
+
+

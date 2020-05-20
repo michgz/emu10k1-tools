@@ -1,0 +1,88 @@
+.TH as10k1 1 "13 May 2001" "emu10k1-tools" "Emu10k1 Users Manual"
+.SH NAME
+as10k1 \- Assembler for the emu10k1 DSP Processor
+.SH SYNOPSIS
+\fBas10k1\fP [\fB-vh\fP] [\fB-d\fP [\fBsgti\fP]] [\fB-o\fP \fIoutputfile\fP]
+[\fB-l\fP \fIlistfile\fP] \fIsourcefile\fP 
+.PP
+or normally just:
+.PP
+.B as10k1 
+.I sourcefile
+.SH DESCRIPTION
+.B as10k1
+is used to assemble dsp binaries for the emu10k1 processor found in 
+soundcards such as Creative Lab's SBLive!.
+.B as10k1
+takes assembly source files (.asm) and assembles them into binary
+files (.bin). These binary files can then be loaded onto the soundcard
+using \fB emu-dspmgr\fP.
+.SH OPTIONS
+.B -d
+.I [dbg_options]   
+Turn on stdout debug messages.
+            s              prints all symbols                
+            g              prints defined gprs
+            t              prints tram usage
+            i              prints instructions
+.TP
+.B -h                    
+Prints a help message  
+.TP
+.B -l
+.I listfile
+Specify a listing file, default is none.
+.TP
+.B -n
+no gpr declaration checks
+.TP
+.B -o
+.I binfile
+Specify an output file. The default is generated from the input file
+by substituting .asm for .bin
+.TP
+.B -v
+Prints version number.
+.SH EXAMPLES
+.B as10k1 flanger.asm
+.TP
+Assembles flanger.asm and produces binary file named flanger.bin
+.TP
+.B as10k1 flanger.asm -o foo
+.TP
+Produces binary file named foo
+.TP
+.B as10k1 -d gs flanger.asm
+.TP
+Produces flanger.bin and prints list of used symbols and gprs to standard output.
+.SH REPORTING BUGS
+Report bugs to <emu10k1-tools-devel@opensource.creative.com>
+.SH COPYING
+\(co 2001 Daniel Bertrand
+.br
+.PP
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+.PP
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+.PP
+Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be included in
+translations approved by the copyright holders instead of in
+the original English.
+.SH SEE ALSO
+\fBemu-dspmgr\fP(1), \fBemu-config\fP(1)
+.TP
+As10k1 online manual:
+<http://members.home.com/d-bertrand/>	
+.SH AUTHORS
+Daniel Bertrand, <d.bertrand@ieee.org>
+
+
+
+

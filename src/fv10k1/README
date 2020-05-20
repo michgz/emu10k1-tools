@@ -1,0 +1,239 @@
+$Id: README,v 1.1 2001/09/28 01:56:20 dbertrand Exp $
+
+    FV10K1 release 0.2.1                    
+    
+    July 17, 2001
+
+    Oleg Smirnov <smirnov@astron.nl>
+    http://www.astron.nl/~smirnov/fv10k1
+    
+
+FV10K1 is a set of "surround sound" patches for the EMU10K1 processor,
+found in the SoundBlaster Live! series of sound cards. You need the
+emu10k1 Linux driver (http://opensource.creative.com) to run this code.
+
+FV10K1 contains a port of Jezar Wakefield's Freeverb reverbration engine
+(http://home.onet.co.uk/~jzracc/freeverb.htm). I have also developed my own
+patches for adding [directional] early room reflections, and some simple
+programs to generate these patches given a room geometry.
+
+This is very much alpha code, so don't expect a slick user interface or
+any bells & whistles. In fact, unless you're a somewhat advanced
+emu10k1 hacker, this code won't be of much use to you. I only developed
+this because I use an SB Live! to play MP3s in my car, and I wanted to
+take full advantage of the 4-speaker output to create surround effects.
+
+I'm releasing this code because I'm hoping that (a) it might be useful
+to you, and (b) maybe you can contribute to resolving some of the
+issues (see the BUGS section at the end of this file).
+
+This code is released under the terms of the GNU General Public License
+version 2. Please see file COPYING for details. 
+
+
+    1. Installation & setup
+
+You must have a recent enough version of the emu10k1 driver installed.
+The associated utilities (emu-dspmgr, as10k1) should be present in your
+$PATH somewhere.
+
+Run "make" to build the patches. The binary patches will be placed into
+the ./bin subdirectory.
+
+Now, you can use the provided load.sh script to load the patches into
+the EMU10K1 as follows:
+
+# loads the Freeverb reverbrator only
+$ load.sh              
+
+# loads Freeverb with room reflections for room definition "default",
+# and output patches for 4-speaker mode
+$ load.sh default
+
+# loads Freeverb with room reflections for room definition "big",
+# and output patches for 4-speaker mode
+$ load.sh big
+
+# loads Freeverb with room reflections for room definition "big",
+# and output patches for 2-speaker mode
+$ load.sh big 2
+
+Two room definitions, "big" and "default" are provided with the
+package. You may also roll your own (see below).
+
+The difference between 2-speaker and 4-speaker mode is the way room
+reflections are handled. In 4-speaker mode, the reflections are
+distributed between the front/rear R/L channels according to their
+apparent direction. In 2-speaker mode, the reflections are only
+distributed between the R/L channels, identically for the front and
+rear outputs.
+
+The load.sh script provided here will attach the inputs to Pcm, and
+the outputs to Front and Rear. You can modify the load.sh script to 
+change this behaviour (see below).
+
+    2. Control
+
+A perl script, fv10k1control.pl, is provided to tune the various
+reverbration parameters. When you run it you see, e.g., the following
+output:
+
+$ fv10k1control.pl
+ DL delay_l      0x78000    #0.00 &0.01
+ DR delay_r      0x78000    #0.00 &0.01
+DRV revdelay     0x4b0000   #0.00 &0.05
+RVG revgain      0x6666666  #0.05 &1.09
+RSZ roomsize     0x3fffffff #0.50 &10.92
+DMP damp         0x3fffffff #0.50 &10.92
+APF allpassfeed  0x3fffffff #0.50 &10.92
+WET wet1         0x59999998 #0.70 &15.29
+DRY dry          0x0        #0.00 &0.00
+RVB revbass      0x3fffffff #0.50 &10.92
+RVT revtreble    0x6666666  #0.05 &1.09
+RVD revdefeat    0x0        #0.00 &0.00
+RFD refldamp     0x59999998 #0.70 &15.29                                        
+FRV reverb_f     0x7fffffff #1.00 &21.85
+FRF refl_f       0x19999999 #0.20 &4.37
+FLV ptf_level    0x19999999 #0.20 &4.37
+RRV reverb_r     0x7fffffff #1.00 &21.85
+RRG reverb_rgain 0x1        #0.00 &0.00
+RRF refl_r       0x19999999 #0.20 &4.37
+RFG refl_rgain   0x1        #0.00 &0.00
+RLV ptr_level    0x7fffffff #1.00 &21.85
+RGA ptr_gain     0x1        #0.00 &0.00
+RBA ptr_bass     0x3fffffff #0.50 &10.92
+RTR ptr_treble   0x3fffffff #0.50 &10.92
+RTD ptr_defeat   0x0        #0.00 &0.00                                         
+>> 
+
+The first column is a parameter ID, the second is the full name of the
+associated control GPR, the third is its value in hex, the fourth is
+the corresponding fractional value, and the fifth is the value in
+seconds (which only makes sense for parameters controlling delays). To
+change a parameter, enter "ID value" at the prompt, e.g. "lf 1.0".
+"value" may be specified as follows:
+
+  - a hex number, prefixed by "0x", e.g., "0x40000000"
+  
+  - a fractional value, prefixed by "#", e.g., "#0.5". You may omit the
+  "#" if the value contains a period.
+  
+  - a value in seconds, prefixed by "&", e.g., "&0.05".
+
+For a desription of the parameters, see comments in fv-controls.inc.
+
+Note that FV10K1 includes a separate bass/treble controls for some
+components of the sound. I prefer to pull down the treble of reverbs (it
+makes them sound more natural). I also provided separate bass/treble for
+the rear passthru -- in fact, the rear speakers have no business playing
+direct signal to begin with (when you're at a concert, the direct signal
+comes from the front, right? It's only reflections and reverbs that come
+from the rear), but in a car it may be useful for rear speakers to play
+direct bass.
+
+    3. Technical details
+    
+FV10K1 consists of two or three patches working in cooperation with
+each other (revision 0.1.1 used six patches, but now that we have
+support for two IO lines per patch, I've managed to trim this down to
+only two). Due to some limitations in the current routing scheme of the
+emu10k1 driver, these patches communicate through a set of control
+GPRs, thus bypassing the normal routing code.
+
+1. The Freeverb patch. The standalone patch (fv10k1) implements a full
+Freeverb algorithm. For room reflections, special patches called
+fv10k1-room implement a reduced Freeverb, plus room reflections. 
+
+These patches should be attached to a pair of input lines (e.g. Pcm R
+and Pcm L, but any two should work). The right channel should be
+specified as the first line. They will pass their input streams on
+transparently (with the exception of a possible predelay), while using
+them to  generate reverbs [and reflections]. For flexibility, the
+reverb/reflection outputs are NOT added to the input streams just yet
+-- this is the job of output patches (see below). Instead, reverbs and
+reflections are output to a set of GPRs (fvrev_{rl}, fvrefl_{fr}{rl}).
+
+The standalone patch is a full Freeverb implementation (8 comb and 4
+allpass filters per channel). Patches with room reflections require a
+compromise (due to a shortage of TRAM address lines in the EMU10K, a
+bunch of which are needed to generate reflections), so they're reduced
+to only 4 comb filters per channel.
+
+2. Output patches (fv-out-{rf}.asm or fv-out-{rf}2.asm, all generated
+from fv-out.m4) are attached to appropriate output lines (usually Front
+and Rear). They're responsible for mixing in the reverb and reflection
+outputs generated by the Freeverb patch. Since reflections are
+directional, different patches are needed for Front and Rear. The rear
+output patch also provides an extra bass/treble control for the rear
+output, as well as an integer gain control, which can be used to pull
+up the rear output to the same level as the front (the rear output is
+normally -12dB, or 1/4  of the front. Note that while using a gain of 4
+will compensate for this, it may cause distortion if the input signal
+is too high. In this case you may use the front level control to pull
+the front output down instead.) 
+
+fv-out-f and fv-out-r are used for 4-speaker mode, and fv-out-f2 and
+fv-out-r2 for 2-speaker mode. The difference is that in 4-speaker mode
+reflections are fully directional (so the signal going to front and
+rear is different), and in 2-speaker mode, the front and rear
+reflections are mixed together (front/rear signals are identical.)
+
+    4. Room reflections
+    
+Freeverb patches implementing room reflections are generated
+automatically (via the makefile) from room definition files. The reason
+for this is simple economy -- this allows us to use constant (static)
+delays and gains for each reflection path, and optimize the code to route
+each reflection into the approrpriate channel according to its
+direction. 
+
+The process starts with a room definition file (*.room), which defines
+the room geometry, source and listener positions, and wall absorption.
+You can make your own based on the two files provided (see comments in
+files for explanations). A C++ program, calcroom.C, then reads this
+file and computes reflection paths for the given room (see comments in
+C++ code for details). Due to hardware limitations (we're stuck in
+internal TRAM, so the max delay is 170 ms, or 85 ms per channel),
+longer (and fainter) paths are discarded, and the rest are written to
+an *.room.rp file.
+
+A perl script (mkfvroom.pl) reads the *.room.rp file, and generates 
+an refl-*.inc file, which is then included into the fv10k1 code. The
+.inc file basically defines a bunch of TRAM read lines corresponding
+to each discrete echo, and sums up the data from the lines. Starting with
+with release 0.3, it includes multistage damping of reflections.
+    
+    5. Bugs & unresolved issues
+    
+* So far, I have very little idea how to relate Freeverb parameters
+(reverb predelay, wet gains, roomsize, wet reflections, dampening,
+etc.) to room geometry. Different rooms should produce different
+reverbs. Ideally, I ought to have Freeverb "profiles" corresponding to
+room definitions.
+
+* In the real world, walls reflect sound differently depending on
+frequency (in general, high frequencies are absorbed more, i.e., relative
+treble decreases with each reflection). This is approximated by a series
+of simple low-pass filters. Perhaps there is an efficient way to
+implement a closer-to-life reflection mechanism?
+
+* I've used some very simple assumptions about room geometry and signal
+reflection properties (calcroom.C). Anyone with more knowledge of
+acoustics can probably correct me. Basic things, like, when signal
+reflects, is the phase inverted?
+
+* This whole passing-data-through-GPRs business seems clumsy. Maybe
+some additions to the emu10k1 routing sceheme can help? 
+
+  
+    Acknowledgments
+
+Jezar Wakefield developed the Freeverb algorithm and released it into
+the public domain. His C++ is a model of clarity to boot (probably
+because he hates coding conventions!).
+
+Daniel Bertrand helped a great deal with resolving some emu10k1 driver
+issues, and explained the inner workings of TRAM to me. His hard work
+on the emu10k1 driver, assembler and associated utilities is what makes
+fun projects like this possible (now, wouldn't the Windows people give
+an arm and a leg to have a driver like that?)

@@ -1,0 +1,60 @@
+
+
+This directory contains various audio effects which can be loaded
+via the emu-dspmgr tool.
+
+A list of effects and a description is given below, effects with
+a "_2" are 2-channel effects, "_4" are 4 channel effects, etc.
+
+ac3pass.asm
+  - AC3 passthough "effect"
+atten.asm
+  - Provides a 12dB attenuation
+chorus.asm, chorus_2.asm
+  - A chorus effect
+delay.asm
+  - generates Echos, this is _not_ a reverb
+5band-eq.asm	
+  - A 5 band Equalizer (needs a bit more work)
+fir.asm	
+  - A low pass filter (A demo of a fir filter implementation)
+flanger.asm, flanger_2.asm	
+  - flanger effect
+gain.asm
+  - Provides a 12dB boost
+sine.asm 
+  - A sinewave generator (can be useful for debuging)
+tone.asm
+  - A bass/treble tone control effect
+tremolo.asm	
+  - A tremolo effect (or is it a vibrato?)
+vibrato.asm	
+  - A vibrato effect (or is it a tremolo?)
+vol.asm
+  - A volume control
+
+
+Dolby(R) Surround Sound(TM) Decoders
+------------------------------------
+
+Some CD's and wav files are encoded with Dolby surround sound information.
+The following files can be used to decode these. surround uses a simple 
+passive matrix and prologic uses an active matrix (it has better channel
+separation.)
+
+surround.asm
+  - A Dolby compatible surround sound decoder for 5 channel setups
+prologic.asm
+  - A Dobly Prologic compatible surround sound decoder for 5 channels
+
+
+Other Files:
+------------
+
+emu_constants.inc -- not an effect, just contains handy constants and macros
+
+
+----
+Last Updated: January 2002
+
+

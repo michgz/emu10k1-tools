@@ -1,0 +1,298 @@
+#!/bin/bash -e
+#
+#     emu-script  --  A setup script
+#
+#     Author: Daniel Bertrand
+#     Last Update:   Sept 30, 2001
+#     Version:       0.7
+#
+# Description:
+# -----------
+# You can use this script to automatically configure the card 
+# on module load
+#
+# To do so, add the following line to your module.config (or conf.module) file
+# (and remove the leading '#'):
+# 
+# post-install emu10k1 /usr/local/etc/emu-script
+#
+# if you want to save mixer levels, you can use the following:
+# 
+# post-install emu10k1 /usr/local/etc/emu-script restore
+# pre-remove emu10k1 /usr/local/etc/emu-script save
+#
+# configuration is done in the file 'emu10k1.conf'
+#
+# Requirements:
+# ------------
+# This script needs the following to be installed:
+#
+# -the emu10k1 tools: 
+#      emu-config, emu-dspmgr and the dsp .bin files
+# -aumix (installed by default on many Linux distros)
+# 
+#
+# Optional argument processing:
+# This script takes arguments which can override the settings in the
+# config file. The following flags are supported:
+#
+# -d [yes|no]	use the digital output
+# -t [yes|no]	enable the tone controls
+# -3 [yes|no]	enable ac3 passthrough
+# -i [yes|no]	enable livedrive ir
+# -r [yes|no]	invert rear channels
+# -m [yes|no]	enable multichannel mode
+# -s [yes|no]	route all multichannel signals to sub
+# -b [yes|no]	enable the 12dB front analog boost
+#
+# I don't include command line switches for enabling the various inputs
+# or selecting if the card is 5.1 since I can't see being able to set or
+# unset these on the fly being particularly useful.
+
+# Default location of programs: 
+BASE_PATH=/usr/local
+DSPPATH=$BASE_PATH/share/emu10k1
+
+DSPMGR=$BASE_PATH/bin/emu-dspmgr
+CONFIG=$BASE_PATH/bin/emu-config
+
+DRIVER_VERSION=` $DSPMGR  -q` 
+ 
+SAVEARGS="$@"
+
+load(){
+
+# Source configurations
+  . $BASE_PATH/etc/emu10k1.conf
+
+# Pick up any coomand line overrides
+while getopts d:t:i:r:m:s:b: OPT $SAVEARGS; do
+	case "$OPT" in
+	d)
+		USE_DIGITAL_OUTPUT=$OPTARG
+		;;
+	t)
+		ENABLE_TONE_CONTROL=$OPTARG
+		;;
+	3)
+		AC3PASSTHROUGH=$OPTARG
+		;;
+	i)
+		ENABLE_LIVEDRIVE_IR=$OPTARG
+		;;
+	r)
+		INVERT_REAR=$OPTARG
+		;;
+	m)
+		MULTICHANNEL=$OPTARG
+		;;
+	s)
+		ROUTE_ALL_TO_SUB=$OPTARG
+		;;
+	b)
+		ANALOG_FRONT_BOOST=$OPTARG
+		;;
+	*)
+		exit 1
+		;;
+	esac
+	shift 2
+done
+
+#set some variables
+if [ "$USE_DIGITAL_OUTPUT" = yes ]; then
+    FRONT="Digital"
+    CENTER="Digital Center"
+    LFE="Digital LFE"
+else
+    FRONT="Front"
+    CENTER="Analog Center"
+    LFE="Analog LFE"
+fi
+
+##function to enable an input
+enable_input(){
+    INPUT=$@
+    $DSPMGR -a"$INPUT:$FRONT" -a"$INPUT:Rear"
+
+}
+input_volume(){
+    INPUT=$1
+    VOLUME=$2
+
+    $DSPMGR -p"$VOLUME Vol" -l"$INPUT" -f$DSPPATH/vol_2.bin -c"Vol_L" -m"${VOLUME}_l" -c"Vol_R" -m"${VOLUME}_r"
+}    
+
+#Start by clearing everything and stopping the FX8010
+$DSPMGR -x -z
+
+
+#
+# Livedrive and other special inputs can be enabled here by un-commenting
+# the appropriate lines
+# 
+
+
+if [ "$ENABLE_CD_Spdif" = yes ]; then
+    enable_input "CD-Spdif"
+    input_volume "CD-Spdif" "dig1"
+fi
+
+if [ "$ENABLE_OPTICAL_SPDIF" = yes ]; then
+    enable_input "Opt. Spdif"
+    input_volume "Opt. Spdif" "dig2"
+fi
+if [ "$ENABLE_LINE2_MIC2" = yes ]; then 
+    enable_input "Line2/Mic2"
+    input_volume "Line2/Mic2" "line2"
+fi
+if [ "$ENABLE_RCA_SPDIF" = yes ]; then
+    enable_input "RCA Spdif"
+    input_volume "RCA Spdif" "dig3"
+fi
+if [ "$ENABLE_RCA_AUX" = yes ]; then
+    enable_input "RCA Aux"
+    input_volume "RCA Aux" "line3"
+fi
+
+if [ "$AC3PASSTHROUGH" = yes ]; then
+    $DSPMGR -a"fx15:Digital L"
+    $DSPMGR -a"fx15:Digital R"
+    $DSPMGR -l"Digital" -f$DSPPATH/ac3pass.bin
+fi
+
+
+# Add common routes:
+
+$DSPMGR -a"Pcm1:Rear" -a"Analog:ADC Rec"  -a"Analog:Rear" -a"Pcm:Rear"
+
+#PCM volume gain
+$DSPMGR -l"Pcm1" -l"Pcm" -f$DSPPATH/gain_4.bin
+
+#Rear Volume Controls
+#$DSPMGR -p"Master R" -l"Rear R" -f$DSPPATH/vol.bin -cVol -mvol_r
+#$DSPMGR -p"Master L" -l"Rear L" -f$DSPPATH/vol.bin -cVol -mvol_l
+$DSPMGR -p"Rear Vol R" -l"Rear" -f$DSPPATH/vol_2.bin -c"Vol_L" -mogain_l -c"Vol_R" -mogain_r
+
+#digital/analog specific setup
+if [ "$USE_DIGITAL_OUTPUT" = yes ]; then
+
+    $DSPMGR -a"Analog:Digital"
+    $DSPMGR -p"Digital Vol" -l"Digital" -f$DSPPATH/vol_2.bin -cVol_L -mvol_l -cVol_R -mvol_r
+    
+    enable_input "Pcm"
+    input_volume "Pcm" "pcm"
+
+#bogus routes to "ground" pcm to analog output:
+    $DSPMGR -a"fx15:Front"
+else
+    if [ "$INVERT_REAR" = yes ] ; then
+	$DSPMGR -l"Rear L" -f$DSPPATH/inv.bin
+	$DSPMGR -l"Rear R" -f$DSPPATH/inv.bin
+    fi
+    if [ "$ANALOG_FRONT_BOOST" = yes ] ; then
+	$CONFIG -B on
+    else
+	$CONFIG -B off
+    fi
+    $DSPMGR -a"Pcm:Front"
+
+# with older driver, pcm:front volume is handle by the ac97 chip
+    if [ "$DRIVER_VERSION" = 0 ]; then
+	$DSPMGR -v"Pcm L:Rear L" -mpcm_l
+	$DSPMGR -v"Pcm R:Rear R" -mpcm_r
+    else
+	enable_input "Pcm"
+	input_volume "Pcm" "pcm" 	
+    fi
+fi
+
+if [ "$ENABLE_TONE_CONTROL" = yes ] ; then
+
+    if [ "$DRIVER_VERSION" = 0 ] ; then
+	TONE=tone-old.bin
+    else
+	TONE=tone.bin
+    fi
+
+    $DSPMGR -l"Pcm L" -f$DSPPATH/$TONE -cbass -mbass -ctreble -mtreble
+#The next 3 'inherit' the oss control of the above line:
+    $DSPMGR -l"Pcm R" -f$DSPPATH/$TONE 
+    $DSPMGR -l"Pcm1 L" -f$DSPPATH/$TONE
+    $DSPMGR -l"Pcm1 R" -f$DSPPATH/$TONE
+    aumix -t 68
+    aumix -b 68
+fi
+
+
+# Multichannel set-up:
+#
+
+if [ "$MULTICHANNEL" = yes ] ; then
+
+    # 5.1 main routes
+    $DSPMGR -a"fx8-9:$FRONT" -a"fx10-11:Rear" -a"fx12:$CENTER" -a"fx13:$LFE"
+
+    # Subwoofer += low frequencies from other channels
+    if [ "$ROUTE_ALL_TO_SUB" = yes ] ; then
+	$DSPMGR -a"fx8-9:$LFE" -a"fx10-11:$LFE" -a"fx12:$LFE" 
+    fi
+
+    GAIN=$DSPPATH/gain_6.bin
+
+    # Use the full dynamic range of all inputs
+    $DSPMGR -l"fx8" -l"fx9" -l"fx10" -l"fx11" -l"fx12" -l"fx13" -f$GAIN
+fi
+
+
+## Surround Sound Setup
+if [ "$SURROUND" = yes ] ; then
+    if [ "$CARD_IS_5_1" = no ] ; then
+	emu-dspmgr -l"Front L" -l"Front R" -l"Analog Center" -f$DSPPATH/c2f.bin
+    fi
+    $DSPMGR -l"Pcm L" -l"Pcm R" -l"Fx10" -l"Fx11" -l"Fx12" -f$DSPPATH/surround.bin
+    $DSPMGR -r"Analog:Rear" -r"Pcm:Rear"
+elif [ "$PROLOGIC" = yes ] ; then
+    if [ "$CARD_IS_5_1" = no ] ; then
+	emu-dspmgr -l"Front L" -l"Front R" -l"Analog Center" -f$DSPPATH/c2f.bin
+    fi
+    $DSPMGR -l"Pcm L" -l"Pcm R" -l"Fx10" -l"Fx11" -l"Fx12" -f$DSPPATH/prologic.bin
+    $DSPMGR -r"Analog:Rear" -r"Pcm:Rear"
+fi
+
+
+# Need to toggle third output on 5.1 cards
+
+if [ "$CARD_IS_5_1" = yes ] ; then
+    if [ "$USE_DIGITAL_OUTPUT" = yes ] ; then
+	$CONFIG -d
+    else
+	$CONFIG -a
+    fi
+fi
+
+# See if we should enable IR
+
+if [ "$ENABLE_LIVEDRIVE_IR" = yes ] ; then
+     $CONFIG -i
+fi
+
+# Restart the FX8010
+$DSPMGR -y
+
+}
+
+case "$1" in
+
+	restore | restart)
+                load
+		# restore mixer settings
+		/bin/aumix-minimal -f /etc/.aumixrc -L  >/dev/null 2>&1 || : 
+                ;;
+        save | stop)
+		# save mixer settings
+		/bin/aumix-minimal -f /etc/.aumixrc -S   >/dev/null 2>&1 || :  
+		;;
+        *)
+		load
+esac

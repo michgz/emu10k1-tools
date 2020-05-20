@@ -1,0 +1,312 @@
+Installation Instruction for emu-tools-0.9.4 
+Readme v1.2 (January 26, 2002)
+--------------------------------------------
+
+
+The emu-tools are work with the emu10k1 driver include in the kernel (as 
+of 2.4.8). The latest version of both the driver and the emu-tools are 
+available at:  http://opensource.creative.com  
+
+
+Special note for Audigy owners:
+ As of 0.9.4 emu-config supports the Audigy, emu-dspmgr does not. 
+ However, at this time only the driver in cvs works with the audigy.
+
+
+
+COMPILATION
+===========
+
+untar this package, enter the directory and make. i.e. :
+
+	tar zxfv emu-tools-XXX.tar.gz
+	cd emu-tools-XXX.tar.gz
+	make
+
+INSTALLATION
+============
+
+As root type:
+
+	make install
+
+
+This will install 2 command-line executable: 'emu-dspmgr' and 'emu-config'
+
+
+emu-dspmgr - A tool for configuring the cards dsp patch management system
+             (e.g for loading "effects", or routing an input to an output)
+
+emu-config - A tool for configuring the card (e.g. toggling the analog/digital
+             output, selecting recording modes, etc)
+
+Also, several ".bin" dsp patches will be installed in /usr/local/share/emu10k1/
+you can load these patches using emu-dspmgr. A description of each effect
+is provided in  /usr/local/share/emu10k1/README
+
+
+For more details on using the above tools, see the man pages. 
+
+
+
+GETTING STARTED
+===============
+
+
+The driver may need to be configured appropriately for your card/speaker combo.
+The driver should work out-of-the-box for most situations unless the following 
+apply:
+
+-You want bass/treble control
+-You have a '5.1' card with digital speakers
+-You want to use AC3 Pass-through
+-You're the type of person who likes to learn and customize things.
+-You want to enable an input on your Live-drive or digital add-on card
+
+
+The basics:
+----------
+
+If you don't want to bother to learn how to use the emu tools, you are
+encouraged to try out "emu-script". It'll be automatically installed to
+'/usr/local/etc/'. 
+
+You'll need to set some configurations variables in 
+'/usr/local/etc/emu10k1.conf' according to your setup. 
+
+Then, test out the script by running it directly, i.e. type:
+ /usr/local/etc/emu-script
+
+
+
+To have it run automatically at module load, insert the following line in
+your /etc/modules.conf:
+
+post-install emu10k1 /usr/local/etc/emu-script
+
+Or, if you want to have it save/restore mixer volume settings:
+
+post-install emu10k1 /usr/local/etc/emu-script restore
+pre-remove emu10k1 /usr/local/etc/emu-script save
+
+
+
+The Gory Details:
+-----------------
+
+
+The emu10k1 is really a dsp processor. It does not do any effects on it's own,
+nor does it route sound from input to output. We had to write dsp code to do that 
+ourselves. 
+
+
+(before anyone ask, no there's no data-sheet/Eng doc available on the 
+emu10k1 or SBLive, see docs/manual.txt for a list of other references)
+
+
+Routing inputs to outputs is the most simplest of operation. A table describing 
+the available inputs and outputs is shown below:
+
+Inputs:
+  Pcm L 	-	PCM audio coming from host CPU (/dev/dsp)
+  Pcm R
+  fx2		-	Unused
+  fx3		-	Unused
+  Pcm1 L	-	PCM audio from /dev/dsp1
+  Pcm1 R
+  fx6		-	Unused
+  fx7		-	Unused
+  fx8		-	First channel in multiplayback PCM
+  fx9		-	second channel
+  fx10		-	third	
+  fx11		-	fourth
+  fx12		-	fifth	
+  fx13		-	Last channel multiplayback PCM
+  fx14		-	Unused	
+  fx15		-	Unused
+  Analog L	-	Analog inputs (mic/line-in/video/analog-CD)
+  Analog R	-	   (the source is the record source selected via oss mixer)
+  CD-Spdif L	-	Digital CD
+  CD-Spdif R
+  in2l		-	Unknown
+  in2r
+  Opt. Spdif L	-	Optical Spdif inputs found on the Live Drive
+  Opt. Spdif R
+  Line2/Mic2 L	-	Another input found on the  Live drive
+  Line2/Mic2 R
+  RCA Spdif L	-	Another Spdif input on Live drive
+  RCA Spdif R
+  RCA Aux L	-	Yet another input on Live drive
+  RCA Aux R
+  in7l		-	unknown
+  in7r
+
+
+
+Outputs:
+  Front L	-	Analog Front out (sends to AC97 codec analog mixer)
+  Front R
+  Digital L	-	Digital Front out
+  Digital R	
+  Digital Center -	Digital Center on SBLive-5.1		
+  Digital LFE	-	Digital LFE on SBLive-5.1
+  Phones L	-	Headphones output on live-drive
+  Phones R
+  Rear L	-	Analog and digital Rear output
+  Rear R
+  ADC Rec L	-	Audio to be sent back to Host CPU for recording
+  ADC Rec R
+  Mic Rec	-	More Audio to be sent back to CPU, mono 8KHz only
+  out6r		-	unknown
+  out7l		-	unknown
+  out7r		-	unknown
+  out8l		-	unknown
+  Analog Center	-	Analog Center on SBLive-5.1
+  Analog LFE	-	Analog LFE on SBLive-5.1
+  out9r	to out15r	unknown
+
+
+It's possible that some of those "unknowns" may in fact be inputs or outputs
+on your system. If you discover a new I/O, please send a note of it to 
+emu10k1-devel@opensource.creative.com
+
+
+Routing
+-------
+
+To add a route, one uses emu-dspmgr with the -a option, for example:
+	emu-dspmgr -a"Pcm1 L:Rear L"
+
+to see a list of routes, the -r option can be used. To remove a route,
+one specifies a route with the -r options, e.g.:
+
+	emu-dspmgr -r"Pcm1 L:Rear L"
+
+If you get an error "Cannot remove route", this may occur if a loaded patch
+depends on needs that route to not be left dangling (more on patches in the next
+section).
+
+
+Patches
+-------
+
+Patches (i.e. 'effects') are loaded and unloaded using the emu-dspmgr tool. An
+effect can be attached to any input or output. When loading an effect, you
+must specify which group of inputs or outputs the patch will be attached to:
+
+emu-dspmgr -l"Pcm L" -l"Pcm R" -f"/usr/local/share/emu10k1/flanger_2.bin"
+
+This loads the stereo patch "flanger_2" onto the two Pcm inputs. Now any mp3, ogg or
+wav played will have the flanger effect applied.
+ 
+
+Control GPRs
+------------
+
+Effects need to have a controllable parameters. This is what the so-called "control
+GPRs" accomplish.
+
+To see list of available control GPRs use the -c option:
+
+emu-dspmgr -c
+
+You'll get a listing of all loaded effects and the control GPRs available to each.
+For example, the tone control patch has the following output:
+
+  Patch: Tone Control
+    name: bass
+    addr: 0x19
+    mixer: bass_l
+    value:  0x07ffffff (0000000000 - 0x7fffffff)
+
+    name: treble
+    addr: 0x1a
+    mixer: treble_l
+    value:  0x07ffffff (0000000000 - 0x7fffffff)
+
+This means 2 controls are available, "bass" and "treble" (The controls name is after "name:" not "mixer:").
+If you wanted to change the value of treble to 1/2 scale, you would do the following:
+
+emu-dspmgr -p"Tone Control" -c"treble" -s#0.5
+
+-p specifies the patch name, -c the control, -s is the value to set. You can
+enter the set value with 3 prefix modifiers:
+
+# - a fractional value (0x7fffffff is 1, 0x80000000 is -1)
+& - delay in seconds (exponential format is ok, i.e.  &1e-3)
+% - delay in number of samples
+
+
+Control Sharing:
+
+One interesting thing about Control GPRs is that the are shared amongst similar
+effects. So if you have 2 tone controls effects loaded, the above example would
+actually change both at the same time.
+
+To get around sharing, you must rename the patches at load time. You can do
+this using the -p options as follows:
+
+emu-dspmgr -p"my_tone" -l"Pcm L" -f"/usr/local/share/emu10k1/tone.bin"
+
+
+
+Volume Controls
+---------------
+
+Most people will notice that the driver now has a lot less volume controls. This
+occurred because of the usage of the ac97_codec module in the kernel (re-use==good). 
+The ac97_codec only provides volume controls on the analog sources (and pcm-to-front).
+To fix this problem a method is used to map control GPRs to the oss mixer controls 
+(e.g. aumix/gmix/kmix/etc).
+
+
+To map a mixer element, we use the -m option as follows:
+
+emu-dspmgr -p"my_tone" -c"bass" -m"line3_l"
+
+For a complete list of mixer controls, use the -m option alone.
+
+If a Control GPR is mapped to a mixer control, it'll have the mixer control
+listed after "mixer:" when the controls are listed with the -c option.
+
+
+INTERNAL MIXER
+==============
+
+
+One last thing which needs to be said, is that there are 2 mixers on the SBLive.
+An analog mixer via the AC97 chip, and the dsp mixer via dsp code on the emu10k1.
+This can lead to much confusion, the SBLive drivers on that other platform do a very 
+good job at hiding this from the users, this is something which we could improve on. 
+
+
+Graphically, the mixers looks like this ( '*' represent volume controls):
+
+
+          emu10k1                                  AC97 chip
+        ----------------                   ------------------------------------|
+PCM    |               |  Analog_out      |                                    |
+ ----->|               |----------------->|-----*-------<Sum>--------------*-->|------->Front out
+(from  |               |                  |            //  | \      |          |
+CPU)   |               |                  |          / |   |    \   |          | 
+       |     DSP       |                  |         *  *   *    *   *(igain)   |
+       |   Routing     |<---------------- |<--\     |  |   |    |   |          |
+       |    Code       |  Analog_in       |    \---< Rec  select > -/          |
+       |    and        |                  |         |  |   |    |              |
+       |   patches     |                  |------------------------------------|
+       |               |                            ^  ^   ^    ^
+       |  (Via         |                            |  |   |    |
+       |   emu-dspmgr) |---> Digital Front          |  |   |    |
+       |               |                          CD Mic Line  Video
+       |               | 
+       |               | 
+       |               |--> Analog & Digital Rear 
+       |               | 
+       |               |<--- Digital sources (CD, Spdif, any Live drive input (including analog sources)) 
+       ----------------
+
+
+Note that Analog_in is what ever you've selected as record source in your OSS mixer. If you select IGain
+you'll get a copy of the Front_out (including analog_out, cd mic, line, video)
+
+
