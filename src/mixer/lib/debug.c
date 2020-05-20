@@ -324,20 +324,20 @@ void print_summary(struct dsp_patch_manager *mgr)
 		else
 			k=i;
 	}
-	printf("\
-Usage Summary:
---------
-Instructions : %d
-GPRS:          %d (last used is %d)
-
-Tram
- Internal
-   buffers:    %d
-   space  :    0x%06x
- External
-   buffers:    %d
-   space  :    0x%06x
-",
+	printf("\n"
+"Usage Summary:\n"
+"--------\n"
+"Instructions : %d\n"
+"GPRS:          %d (last used is %d)\n"
+"\n"
+"Tram\n"
+" Internal\n"
+"   buffers:    %d\n"
+"   space  :    0x%06x\n"
+" External\n"
+"   buffers:    %d\n"
+"   space  :    0x%06x\n"
+"\n",
 	       mgr->code_free_start/2, j,k,
 	       mgr->traml_ifree_start,  mgr->tramb_ifree_start,
 	       mgr->traml_efree_start,  mgr->tramb_efree_start);

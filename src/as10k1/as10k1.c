@@ -39,33 +39,33 @@ int dbg_opt=0;
 
 char version[]="As10k1 assembler version 1.0";
 
-char help[]="
-Usage: as10k1 [option...] asmfile
-
-The as10k1 assembler is for the emu10k1 dsp processor
-found in Creative Lab's sblive series of sound cards.
-
-Author: Daniel Bertrand <d.bertrand@ieee.org>
-BUGS:   emu10k1-devel mailing list <emu10k1-devel@opensource.creative.com>
-URLs:   members.home.com/d-bertrand, opensource.creative.com
-
-Options:\n
-     -l [listfile]         Specify a listing file, default is none.
-     -o [binfile]          Specify an output file, default is based input,
-                           Substituting .asm fo .bin
-     -d [dbg_options...]   Turn on debug messages.
-            s              prints all symbols                
-            g              prints defined gprs
-            t              prints tram usage
-            i              prints instructions
-
-     -n                    no gpr declaration check 
-     -h                    Prints this message  
-     -v                    Prints version number. 
-
-This program is distributed under the GPL.
-
-";
+char help[]="\n"
+"Usage: as10k1 [option...] asmfile\n"
+"\n"
+"The as10k1 assembler is for the emu10k1 dsp processor\n"
+"found in Creative Lab's sblive series of sound cards.\n"
+"\n"
+"Author: Daniel Bertrand <d.bertrand@ieee.org>\n"
+"BUGS:   emu10k1-devel mailing list <emu10k1-devel@opensource.creative.com>\n"
+"URLs:   members.home.com/d-bertrand, opensource.creative.com\n"
+"\n"
+"Options:\n"
+"     -l [listfile]         Specify a listing file, default is none.\n"
+"     -o [binfile]          Specify an output file, default is based input,\n"
+"                           Substituting .asm fo .bin\n"
+"     -d [dbg_options...]   Turn on debug messages.\n"
+"            s              prints all symbols                \n"
+"            g              prints defined gprs\n"
+"            t              prints tram usage\n"
+"            i              prints instructions\n"
+"\n"
+"     -n                    no gpr declaration check \n"
+"     -h                    Prints this message  \n"
+"     -v                    Prints version number. \n"
+"\n"
+"This program is distributed under the GPL.\n"
+"\n"
+"\n";
 
 //  cli==Command-Line Interface && !Creative Labs Inc.
 
@@ -94,7 +94,7 @@ void parse_cli_args(int argc, char *argv[])
 					dbg_opt=dbg_opt|DBG_INSTR;//default
 					i--;
 					printf(" instructions by default\n");
-					goto next_cli_arg;
+					continue;
 				}
 				
 				while(argv[i][j]!='\0'){
@@ -162,7 +162,6 @@ void parse_cli_args(int argc, char *argv[])
 			}
 
 		}
-next_cli_arg:
 
 	}
 }
@@ -366,7 +365,7 @@ void as_exit(const char *message)
 	exit(1);
 }
 
-inline void output_tram_line( struct list_head *line_head, int type){
+inline static void output_tram_line( struct list_head *line_head, int type){
         
         struct tram *tram_sym;
         struct list_head *entry;

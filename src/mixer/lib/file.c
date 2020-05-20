@@ -433,9 +433,9 @@ int dsp_read_patch(struct dsp_patch_manager *mgr, const char *file, int input[DS
 			
 			for (j = 0; j < DSP_NUM_OUTPUTS; j++)
 				if ( test_bit(input[i], &mgr->rpatch.route_v[j]) || test_bit(input[i], &mgr->rpatch.route[j])  ) 
-					goto match1;
-			goto err2;
-match1:
+					break;
+			if (j < DSP_NUM_OUTPUTS)
+				goto err2;
 		}
 		goto match;
 	}else{

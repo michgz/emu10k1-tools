@@ -26,7 +26,68 @@
 #include <stdint.h>
 
 #include <linux/types.h>
-#include <linux/bitops.h>
+//#include <linux/bitops.h>
+
+/*************************************************************/
+/*  ** The bitops.h file is not installed by default in the linux
+ *  ** directory. Here, implement versions of the functions that
+ *  ** assume integer (not long) inputs.  ****************** */
+
+#ifndef __GNUC__
+	#error "Inbuilt atomic functions assume GCC"
+#endif
+
+#define BITS_PER_INT 32
+#define BIT_MASK(n) (1UL<<(n))
+#define BIT_WORD(n) (0)   // Only works for long values!!
+#define READ_ONCE(x) (x)
+
+typedef volatile unsigned int atomic_t;
+
+static inline void set_bit(unsigned int nr, volatile unsigned *p)
+{
+	p += BIT_WORD(nr);
+	__sync_fetch_and_or((atomic_t *)p, BIT_MASK(nr));
+}
+
+static inline void clear_bit(unsigned int nr, volatile unsigned *p)
+{
+	p += BIT_WORD(nr);
+	__sync_fetch_and_and((atomic_t *)p, ~BIT_MASK(nr));
+}
+
+static inline int test_and_set_bit(unsigned int nr, volatile unsigned *p)
+{
+	long old;
+	unsigned long mask = BIT_MASK(nr);
+
+	p += BIT_WORD(nr);
+	if (READ_ONCE(*p) & mask)
+		return 1;
+
+	old = __sync_fetch_and_or((atomic_t *)p, mask);
+	return !!(old & mask);
+}
+
+static inline int test_and_clear_bit(unsigned int nr, volatile unsigned *p)
+{
+	long old;
+	unsigned mask = BIT_MASK(nr);
+
+	p += BIT_WORD(nr);
+	if (!(READ_ONCE(*p) & mask))
+		return 0;
+
+	old = __sync_fetch_and_and((atomic_t *)p, ~mask);
+	return !!(old & mask);
+}
+
+static inline int test_bit(int nr, const volatile unsigned *addr)
+{
+	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_INT-1)));
+}
+
+/*************************************************************/
 
 #include "list.h"
 
