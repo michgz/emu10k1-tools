@@ -265,13 +265,13 @@ void print_dbg(){
 	step_mode_on=(val&DBG_SINGLE_STEP)>>15 ;
 	if(step_mode_on){
 		
-	printf("----------------------------------------------------------------------------
-|Emu10k1 Status                |  Debug register 0x%08x                  |
-|----------------------------------------------------------------------------|
-| single step mode: \e[1;31mON\e[0m	 	  Saturation: %s\e[0m; Last addr: 0x%03x (0x%03x) |
-| program pointer: 0x%03x (0x%03x)  Condition code: 0x%02x -> %s\e[0m %s\e[0m %s\e[0m %s\e[0m %s\e[0m          |
- -----------------------------------------------------------------------------
-",
+	printf("----------------------------------------------------------------------------\n"
+"|Emu10k1 Status                |  Debug register 0x%08x                  |\n"
+"|----------------------------------------------------------------------------|\n"
+"| single step mode: \e[1;31mON\e[0m	 	  Saturation: %s\e[0m; Last addr: 0x%03x (0x%03x) |\n"
+"| program pointer: 0x%03x (0x%03x)  Condition code: 0x%02x -> %s\e[0m %s\e[0m %s\e[0m %s\e[0m %s\e[0m          |\n"
+" -----------------------------------------------------------------------------\n"
+"\n",
 	       val,
 
 	       ((val&DBG_SATURATION_OCCURED)>>25)?"\e[1;31mYes ":"None",
@@ -292,13 +292,13 @@ void print_dbg(){
 
 	}
 	else
-		printf("-----------------------------------------------------------------------------
-|Emu10k1 Status                |  Debug register 0x%08x                  |
-|----------------------------------------------------------------------------|
-| single step mode: off	          Saturation: %s\e[0m; Last addr: 0x%03x (0x%03x) |
-|                                                                            |
- ----------------------------------------------------------------------------
-", val, ((val&DBG_SATURATION_OCCURED)>>25)?"\e[1;31mYes ":"None",
+		printf("-----------------------------------------------------------------------------\n"
+"|Emu10k1 Status                |  Debug register 0x%08x                  |\n"
+"|----------------------------------------------------------------------------|\n"
+"| single step mode: off	          Saturation: %s\e[0m; Last addr: 0x%03x (0x%03x) |\n"
+"|                                                                            |\n"
+" ----------------------------------------------------------------------------\n"
+"\n", val, ((val&DBG_SATURATION_OCCURED)>>25)?"\e[1;31mYes ":"None",
 	       (val&DBG_SATURATION_ADDR)>>16,
 		       ((val&DBG_SATURATION_ADDR)>>16)*2+0x400    
 		       );

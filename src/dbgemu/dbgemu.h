@@ -113,99 +113,99 @@ char *op_description[16]={
 	"R=log(A), X controls max exponent(2-31), Y controls sign",
 	"R=log(A), X controls max exponent(2-31), Y controls sign",
 	"INTERP R = A + (X * (Y - A) >> 31); overflow: saturation",
-	"SKIP R->GPR to store CCR, A -> CCR to use, X-> skip test equation,
- Y-> gpr containint number of instructions to skip"  
+	"SKIP R->GPR to store CCR, A -> CCR to use, X-> skip test equation,\n"
+" Y-> gpr containint number of instructions to skip"  
 };
 
 
 int fd,fd2;
-char map[]="memory map:
+char map[]="memory map:\n"
+"\n"
+"GRPS:                  0x100-0x1FF\n"
+"ITRAM Data Buffer:     0x200-0x27F\n"
+"XTRAM Data Buffer:     0x280-0x29F\n"
+"ITRAM Address Buffer:  0x300-0x37F\n"
+"XTRAM Address Buffer:  0x380-0x39F\n"
+"Program Memory:        0x400-0x600\n"
+"\n";
 
-GRPS:                  0x100-0x1FF
-ITRAM Data Buffer:     0x200-0x27F
-XTRAM Data Buffer:     0x280-0x29F
-ITRAM Address Buffer:  0x300-0x37F
-XTRAM Address Buffer:  0x380-0x39F
-Program Memory:        0x400-0x600
-";
-
-char usage[]="
-dbgemu [options]
-
-All values in hex.
-
-   -d  dumps registers, sub-options:
-
-        -a <address>     
-            dumps contents of the AC97 register at the given address
-
-        -r <address>
-            dumps contents of the DSP register at the given address.
-            valid ranges of register:
-              CONFIG REGS            0x000-0x063
-              GRPS:                  0x100-0x1FF
-              ITRAM Data Buffer:     0x200-0x27F
-              XTRAM Data Buffer:     0x280-0x29F
-              ITRAM Address Buffer:  0x300-0x37F
-              XTRAM Address Buffer:  0x380-0x39F
-              Program Memory:        0x400-0x600
-        -f <address>
-            dumps \"function0\" register space(includes the HCFG register)
-        
-
-   -l  loads values into register, sub-options:
-
-        -a <address> <value>
-             load value into given ac97 register
-
-        -c <address> <opcode> <R> <A> 
-             load formated dsp code
-        
-        -r <address> <value>
-             load value into given dsp register
-                
-        -f <address> <value>
-             load value into given fn0 register
-
-   -D  [commands]
-        If no command is specified, prints current dsp debug state.
-       Debug mode commands:
-
-        step_mode
-             turns on step mode
-
-        step [instruction #]
-             executes given instruction, if no instruction is specified,
-             esecutes next instruction
-
-        clear_sat
-             clears the \"saturation occured\" bit.
-
-        step_mode_off
-             resumes normal dsp operation.
-
-   -h     Prints this help message.
-   -v     Prints version number.
-
----
-
-Examples:
-
-To display 10 GPRs starting from 0x100:
-
-dbgemu -d r  100 10
-
-To load a value of 1 to 0x100:
-
-dbgemu -l r 100 1
-
-To change an instruction:
-
-dbgemu -l c 400 macs 10 30 100 20
-
-
----
-";
+char usage[]="\n"
+"dbgemu [options]\n"
+"\n"
+"All values in hex.\n"
+"\n"
+"   -d  dumps registers, sub-options:\n"
+"\n"
+"        -a <address>     \n"
+"            dumps contents of the AC97 register at the given address\n"
+"\n"
+"        -r <address>\n"
+"            dumps contents of the DSP register at the given address.\n"
+"            valid ranges of register:\n"
+"              CONFIG REGS            0x000-0x063\n"
+"              GRPS:                  0x100-0x1FF\n"
+"              ITRAM Data Buffer:     0x200-0x27F\n"
+"              XTRAM Data Buffer:     0x280-0x29F\n"
+"              ITRAM Address Buffer:  0x300-0x37F\n"
+"              XTRAM Address Buffer:  0x380-0x39F\n"
+"              Program Memory:        0x400-0x600\n"
+"        -f <address>\n"
+"            dumps \"function0\" register space(includes the HCFG register)\n"
+"        \n"
+"\n"
+"   -l  loads values into register, sub-options:\n"
+"\n"
+"        -a <address> <value>\n"
+"             load value into given ac97 register\n"
+"\n"
+"        -c <address> <opcode> <R> <A> \n"
+"             load formated dsp code\n"
+"        \n"
+"        -r <address> <value>\n"
+"             load value into given dsp register\n"
+"                \n"
+"        -f <address> <value>\n"
+"             load value into given fn0 register\n"
+"\n"
+"   -D  [commands]\n"
+"        If no command is specified, prints current dsp debug state.\n"
+"       Debug mode commands:\n"
+"\n"
+"        step_mode\n"
+"             turns on step mode\n"
+"\n"
+"        step [instruction #]\n"
+"             executes given instruction, if no instruction is specified,\n"
+"             esecutes next instruction\n"
+"\n"
+"        clear_sat\n"
+"             clears the \"saturation occured\" bit.\n"
+"\n"
+"        step_mode_off\n"
+"             resumes normal dsp operation.\n"
+"\n"
+"   -h     Prints this help message.\n"
+"   -v     Prints version number.\n"
+"\n"
+"---\n"
+"\n"
+"Examples:\n"
+"\n"
+"To display 10 GPRs starting from 0x100:\n"
+"\n"
+"dbgemu -d r  100 10\n"
+"\n"
+"To load a value of 1 to 0x100:\n"
+"\n"
+"dbgemu -l r 100 1\n"
+"\n"
+"To change an instruction:\n"
+"\n"
+"dbgemu -l c 400 macs 10 30 100 20\n"
+"\n"
+"\n"
+"---\n"
+"\n";
 int foo=0;
 char version[]="dbgemu, version 0.3";
 
